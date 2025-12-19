@@ -67,8 +67,28 @@ variable "private_subnets" {
   type = list(any)
 }
 
-variable "db_subnets" {
-  type = list(any)
+#variable "db_subnets" {
+#  type = list(any)
+#}
+
+variable "role_name" {
+  description = "The name of the IAM role"
+  type        = string
+}
+
+variable "terraform_oidc_policy" {
+  description = "The ARN of the IAM policy to attach to the role"
+  type        = string
+}
+
+variable "github_repository" {
+  description = "List of GitHub repositories to allow for access"
+  type        = list(string)
+}
+
+variable "aws_account_id" {
+  description = "The AWS account ID where resources will be created"
+  type        = string
 }
 
 variable "public_subnet_route_tables" {
@@ -266,7 +286,7 @@ variable "rds" {
     instance_class                        = string
     db_username                           = string
     parameter_group_name                  = string
-   parameter_group_family                = string
+    parameter_group_family                = string
     backup_retention_period               = number
     port                                  = number
     db_sg_name                            = string
@@ -309,10 +329,10 @@ variable "cicd" {
     artifact_bucket = string
 
     github = object({
-      owner  = string
-      repo   = string
-      branch = string
-      connection_arn  = string
+      owner          = string
+      repo           = string
+      branch         = string
+      connection_arn = string
       #      token  = string
     })
 

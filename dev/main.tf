@@ -1,3 +1,13 @@
+module "github_oidc" {
+   source         = "../modules/github-oidc"
+   region         = var.region
+   role_name      = var.role_name
+   github_repos   = var.github_repository
+   policy_name    = var.terraform_oidc_policy
+   aws_account_id = var.aws_account_id
+}
+
+
 module "vpc" {
   source        = "../modules/networking/vpc"
   region        = var.region
@@ -21,10 +31,11 @@ module "subnet" {
   public_subnets              = var.public_subnets
   private_subnet_route_tables = var.private_subnet_route_tables
   public_subnet_route_tables  = var.public_subnet_route_tables
-  ecs_security_group_id = aws_security_group.ecs_sg.id
+  #  ecs_security_group_id = aws_security_group.ecs_sg.id
 
-  common_tags                 = var.common_tags
+  common_tags = var.common_tags
 }
+
 
 module "ecr" {
   source           = "../modules/ecr"
@@ -108,10 +119,10 @@ resource "aws_security_group" "ecs_sg" {
 }
 
 module "iam" {
-  source      = "../modules/iam"
-  name_prefix = var.name_prefix
+  source                  = "../modules/iam"
+  name_prefix             = var.name_prefix
   codestar_connection_arn = var.cicd.github.connection_arn
-  artifact_bucket = var.cicd.artifact_bucket
+  artifact_bucket         = var.cicd.artifact_bucket
 }
 
 #resource "aws_s3_bucket" "codepipeline_artifacts" {
@@ -144,59 +155,59 @@ module "s3buckets" {
 #  }
 #}
 
- module "acm" {
-   source = "../modules/acm"
+module "acm" {
+  source = "../modules/acm"
 
-   domains            = var.domains
-   multi_domain_cert  = var.multi_domain_cert
-   validation_method  = var.validation_method
-   # Pick your R53 Hosted Zone ID for validation
-   hosted_zone_id = module.route53.zones["harshitha.com"].id
-   common_tags        = var.common_tags
- }
-
-
- module "cloudfront" {
-   source = "../modules/cloudfront"
-
-   distributions = var.distributions
- }
+  domains           = var.domains
+  multi_domain_cert = var.multi_domain_cert
+  validation_method = var.validation_method
+  # Pick your R53 Hosted Zone ID for validation
+  hosted_zone_id = module.route53.zones["harshitha.com"].id
+  common_tags    = var.common_tags
+}
 
 
- module "rds" {
+module "cloudfront" {
+  source = "../modules/cloudfront"
+
+  distributions = var.distributions
+}
+
+
+module "rds" {
   source             = "../modules/rds"
   vpc_id             = module.vpc.vpc_ids[0]
   vpc_cidr           = module.vpc.vpc_cidr[0]
   rds                = var.rds
   private_subnet_ids = module.subnet.private_subnet_ids
   common_tags        = var.common_tags
- }
+}
 
- module "route53" {
-   source = "../modules/route53"
-   vpc_id       = module.vpc.vpc_ids[0]
-   hosted_zones = var.hosted_zones
-   records      = var.records
-   common_tags = var.common_tags
- }
+module "route53" {
+  source       = "../modules/route53"
+  vpc_id       = module.vpc.vpc_ids[0]
+  hosted_zones = var.hosted_zones
+  records      = var.records
+  common_tags  = var.common_tags
+}
 
- module "secrets" { 
-   source                                  = "../modules/secrets" 
-   secrets_list                            = var.secrets_list
-   common_tags                             = var.common_tags
- }
+module "secrets" {
+  source       = "../modules/secrets"
+  secrets_list = var.secrets_list
+  common_tags  = var.common_tags
+}
 
- module "sns" {
-   source = "../modules/sns"
-   sns   = var.sns
-   common_tags   = var.common_tags
- }
+module "sns" {
+  source      = "../modules/sns"
+  sns         = var.sns
+  common_tags = var.common_tags
+}
 
- module "sqs" {
-   source      = "../modules/sqs"
-   sqs_queues  = var.sqs_queues
-   common_tags = var.common_tags
-   }
+module "sqs" {
+  source      = "../modules/sqs"
+  sqs_queues  = var.sqs_queues
+  common_tags = var.common_tags
+}
 
 module "codebuild" {
   for_each     = var.task_definition
@@ -249,15 +260,15 @@ module "codepipeline" {
   environment = var.environment
 
   #  pipeline_name   = var.cicd.pipeline_name
-  pipeline_name   = "${var.cicd.pipeline_name}-${each.key}"
+  pipeline_name = "${var.cicd.pipeline_name}-${each.key}"
 
   artifact_bucket = var.cicd.artifact_bucket
 
   role_arn = module.iam.codepipeline_role_arn
 
-  github_owner  = var.cicd.github.owner
-  github_repo   = var.cicd.github.repo
-  github_branch = var.cicd.github.branch
+  github_owner            = var.cicd.github.owner
+  github_repo             = var.cicd.github.repo
+  github_branch           = var.cicd.github.branch
   codestar_connection_arn = var.cicd.github.connection_arn
 
   #  github_token  = var.cicd.github.token
@@ -265,8 +276,8 @@ module "codepipeline" {
   codebuild_project_name = module.codebuild[each.key].project_name
   codedeploy_app_name    = module.codedeploy[each.key].app_name
   codedeploy_dg_name     = module.codedeploy[each.key].dg_name
-  taskdef_template_path = "taskdef-${each.key}.json"
-  appspec_template_path = "appspec-${each.key}.yaml"
+  taskdef_template_path  = "taskdef-${each.key}.json"
+  appspec_template_path  = "appspec-${each.key}.yaml"
 
   depends_on = [
     module.s3buckets

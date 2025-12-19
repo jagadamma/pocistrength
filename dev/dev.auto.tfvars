@@ -40,47 +40,47 @@ public_subnets = [
   {
     name              = "sharadha-dev-us-public-subnet-1"
     cidr              = "10.0.1.0/24"
-    availability_zone = "us-east-2a"
+    availability_zone = "ap-south-1a"
   },
   {
     name              = "sharadha-dev-us-public-subnet-2"
     cidr              = "10.0.2.0/24"
-    availability_zone = "us-east-2b"
+    availability_zone = "ap-south-1b"
   }
 ]
 private_subnets = [
   {
     name              = "sharadha-dev-us-private-subnet-1"
     cidr              = "10.0.3.0/24"
-    availability_zone = "us-east-2a"
+    availability_zone = "ap-south-1a"
   },
   {
     name              = "sharadha-dev-us-private-subnet-2"
     cidr              = "10.0.4.0/24"
-    availability_zone = "us-east-2b"
-
-  },
-]
-
-db_subnets = [
-  {
-    name              = "sharadha-dev-us-db-subnet-1"
-    cidr              = "10.0.20.0/24"
-    availability_zone = "ap-south-1a"
-  },
-  {
-    name              = "sharadha-dev-us-db-subnet-2"
-    cidr              = "10.0.21.0/24"
     availability_zone = "ap-south-1b"
-    tags = {
-      "kubernetes.io/cluster/sharadha-dev-us-cluster" = "shared"
-      "kubernetes.io/role/internal-elb"            = "1"
-    SubnetType                                   = "Private"
-      "karpenter.sh/discovery"                       = "sharadha-dev-us-cluster"
 
-    }
-  }  
+  },
 ]
+
+#db_subnets = [
+#  {
+#    name              = "sharadha-dev-us-db-subnet-1"
+#    cidr              = "10.0.20.0/24"
+#    availability_zone = "ap-south-1a"
+#  },
+#  {
+#    name              = "sharadha-dev-us-db-subnet-2"
+#    cidr              = "10.0.21.0/24"
+#    availability_zone = "ap-south-1b"
+#    tags = {
+#      "kubernetes.io/cluster/sharadha-dev-us-cluster" = "shared"
+#      "kubernetes.io/role/internal-elb"               = "1"
+#      SubnetType                                      = "Private"
+#      "karpenter.sh/discovery"                        = "sharadha-dev-us-cluster"
+#
+#    }
+#  }
+#]
 
 private_subnet_route_tables = [
   {
@@ -106,7 +106,7 @@ db_subnet_route_tables = [
   {
     name = "sharadha-dev-us-db-rt"
     tags = {
-      SubnetType  = "db"
+      SubnetType = "db"
     }
   }
 ]
@@ -199,7 +199,7 @@ records = {
   #     evaluate_target_health = true
   #   }
   # }
-  }
+}
 
 ########################################################################################################
 
@@ -240,20 +240,20 @@ rds = {
 }
 
 
-  sns = {
-    "sharadha-dev-us-topic" = {
-      display_name = "sharadha-dev-us-topic"
+sns = {
+  "sharadha-dev-us-topic" = {
+    display_name = "sharadha-dev-us-topic"
 
-      subscriptions = [
-        {
-          protocol = "email"
-          endpoint = "orders@company.com"
-        } 
-      ]
-    }
+    subscriptions = [
+      {
+        protocol = "email"
+        endpoint = "orders@company.com"
+      }
+    ]
   }
+}
 
- secrets_list = [
+secrets_list = [
   {
     name        = "api-token"
     description = "API token for service"
@@ -266,23 +266,23 @@ rds = {
 
 sqs_queues = {
   orders_queue = {
-    name                        = "orders-queue-dev"
-    max_message_size            = 262144
-    message_retention_seconds   = 345600
-    visibility_timeout_seconds  = 30
-    delay_seconds               = 0
-    receive_wait_time_seconds   = 10
-    sqs_managed_sse_enabled     = true
+    name                       = "orders-queue-dev"
+    max_message_size           = 262144
+    message_retention_seconds  = 345600
+    visibility_timeout_seconds = 30
+    delay_seconds              = 0
+    receive_wait_time_seconds  = 10
+    sqs_managed_sse_enabled    = true
   }
 
   payments_queue = {
-    name                        = "payments-queue-dev"
-    max_message_size            = 262144
-    message_retention_seconds   = 86400
-    visibility_timeout_seconds  = 45
-    delay_seconds               = 5
-    receive_wait_time_seconds   = 10
-    sqs_managed_sse_enabled     = true
+    name                       = "payments-queue-dev"
+    max_message_size           = 262144
+    message_retention_seconds  = 86400
+    visibility_timeout_seconds = 45
+    delay_seconds              = 5
+    receive_wait_time_seconds  = 10
+    sqs_managed_sse_enabled    = true
   }
 }
 
@@ -312,13 +312,13 @@ ecr_repositories = [
     enable_encryption = true
     enable_lifecycle  = true
   },
-  {
-    name              = "sharadha-dev-us-ecr1"
-    enable_scanning   = true
-    tag_mutability    = "MUTABLE"
-    enable_encryption = true
-    enable_lifecycle  = true
-  }
+#  {
+#    name              = "sharadha-dev-us-ecr1"
+#    enable_scanning   = true
+#    tag_mutability    = "MUTABLE"
+#    enable_encryption = true
+#    enable_lifecycle  = true
+#  }
 ]
 
 lifecycle_policy = {
@@ -388,7 +388,7 @@ security_groups = {
 
 task_definition = {
   app1 = {
-    
+
     image  = "132398229882.dkr.ecr.us-east-2.amazonaws.com/sharadha-dev-us-ecr"
     port   = 80
     cpu    = 256
@@ -407,9 +407,9 @@ cicd = {
   artifact_bucket = "sharadha-dev-us-codepipeline-artifacts"
 
   github = {
-    owner  = "jagadamma"
-    repo   = "nginx-dockerdile-deployment"
-    branch = "master"
+    owner          = "jagadamma"
+    repo           = "nginx-dockerdile-deployment"
+    branch         = "master"
     connection_arn = "arn:aws:codeconnections:us-east-2:132398229882:connection/01c78266-df87-4b67-9b03-352a1bb1a3fe"
   }
 
@@ -431,7 +431,7 @@ artifact_bucket = "sharadha-dev-us-codepipeline-artifacts"
 
 service_ecr_map = {
   app1 = "sharadha-dev-us-ecr"
-  app2 = "sharadha-dev-us-ecr1"
+  app2 = "sharadha-dev-us-ecr"
 }
 
 ########################################################################################################

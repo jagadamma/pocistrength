@@ -8,7 +8,7 @@ resource "aws_security_group" "vpc_endpoints_sg" {
     protocol        = "tcp"
     from_port       = 443
     to_port         = 443
-    security_groups = [var.ecs_security_group_id]
+    #    security_groups = [var.ecs_security_group_id]
   }
     tags = merge(
     var.common_tags,

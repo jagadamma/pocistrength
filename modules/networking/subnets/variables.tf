@@ -47,9 +47,9 @@ variable "public_subnet_route_tables" {
   type = list
 }
 
-variable "ecs_security_group_id" {
-  type = string
-}
+#variable "ecs_security_group_id" {
+#  type = string
+#}
 
 
 #variable "db_subnet_route_tables" {

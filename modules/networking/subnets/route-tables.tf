@@ -51,12 +51,13 @@ resource "aws_route_table" "private_subnet_route_table" {
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gateway[0].id
+    nat_gateway_id = aws_nat_gateway.nat_gateway.id
   }
 
   tags = merge(
     var.common_tags,
-    { Name = "private-nat-rt" }
+    { Name = lookup(var.private_subnet_route_tables[0], "name") },
+    try(lookup(var.private_subnet_route_tables[0], "tags", {}), {})
   )
 }
 
@@ -69,15 +70,10 @@ resource "aws_route_table" "private_subnet_route_table" {
   #}
 
 resource "aws_route_table_association" "private_subnet_route_table_association" {
-  for_each = {
-    for subnet in aws_subnet.private_subnets :
-    subnet.id => aws_route_table.private_subnet_route_table.id
-  }
-
-  subnet_id      = each.key
-  route_table_id = each.value
+  count          = length(aws_subnet.private_subnets)
+  subnet_id      = aws_subnet.private_subnets[count.index].id
+  route_table_id = aws_route_table.private_subnet_route_table.id
 }
-
 
 
 #resource "aws_route_table" "db_subnet_route_table" {
