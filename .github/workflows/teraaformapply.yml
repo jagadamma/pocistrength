@@ -1,43 +1,42 @@
-name: 'Terraform Apply'
+name: Terraform Apply
 
 on:
   push:
     branches:
       - main
+    paths:
+      - "dev/**"
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  terraform_apply_ap_south_1:
-    name: 'Terraform Apply - ap-south-1'
+  terraform_apply:
+    name: Terraform Apply
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: jagadamma/pocistrength/dev
+        working-directory: dev
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials using OIDC
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ASSUME }}
           aws-region: ap-south-1
 
-      - name: Set up Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Plan (Save Plan)
-        run: terraform plan -input=false -out=tfplan
+        run: terraform init -input=false
 
       - name: Terraform Apply
-        run: terraform apply -input=false tfplan
+        run: terraform apply -input=false -auto-approve
