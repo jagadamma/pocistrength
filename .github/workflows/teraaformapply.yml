@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: Fayaa-terrafrom-scripts/env/prod/ap-south-1
+        working-directory: jagadamma/pocistrength/dev
 
     steps:
       - name: Checkout Repository
