@@ -8,8 +8,6 @@
 #}
 
 
-
-
 module "vpc" {
   source        = "../modules/networking/vpc"
   region        = var.region
@@ -285,4 +283,5 @@ module "codepipeline" {
     module.s3buckets
   ]
 }
+
 
