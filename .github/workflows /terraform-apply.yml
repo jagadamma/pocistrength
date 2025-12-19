@@ -1,4 +1,4 @@
-name: Terraform Apply
+name: Terraform Apply (Networking)
 
 on:
   push:
@@ -13,7 +13,6 @@ permissions:
 
 jobs:
   terraform_apply:
-    name: Terraform Apply
     runs-on: ubuntu-latest
 
     defaults:
@@ -21,22 +20,24 @@ jobs:
         working-directory: dev
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ASSUME }}
           aws-region: ap-south-1
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
 
       - name: Terraform Init
         run: terraform init -input=false
 
-      - name: Terraform Apply
-        run:  terraform apply -input=false -auto-approve -target=module.networking
+      - name: Terraform Apply (VPC + Networking only)
+        run: |
+          terraform apply \
+            -input=false \
+            -auto-approve \
+            -target=module.networking
