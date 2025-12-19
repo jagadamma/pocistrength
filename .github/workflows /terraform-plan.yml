@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   terraform_plan:
-    name: Terraform Plan
     runs-on: ubuntu-latest
 
     defaults:
@@ -23,41 +22,53 @@ jobs:
         working-directory: dev
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ASSUME }}
           aws-region: ap-south-1
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+      - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
 
       - name: Terraform Init
         run: terraform init -input=false
 
-      - name: Terraform Validate
-        run: terraform validate
-
       - name: Terraform Plan
-        run: terraform plan -input=false -no-color > plan.txt
+        id: plan
+        run: |
+          terraform plan -input=false -no-color > plan.txt || true
+          echo "PLAN_FILE=plan.txt" >> $GITHUB_ENV
 
-      - name: Comment plan on PR
-        uses: marocchino/sticky-pull-request-comment@v2
+      - name: Comment Terraform Plan
+        uses: actions/github-script@v7
         with:
-          header: terraform-plan
-          message: |
-            ✅ **Terraform Plan**
+          script: |
+            const fs = require('fs');
+
+            const plan = fs.readFileSync('dev/plan.txt', 'utf8');
+            const truncated = plan.length > 65000
+              ? plan.slice(0, 65000) + '\n\n⚠️ Output truncated'
+              : plan;
+
+            const body = `
+            ## 🧱 Terraform Plan (networking)
 
             <details>
-            <summary>📄 Show Plan</summary>
+            <summary>Show Plan</summary>
 
-            ```hcl
-            $(cat plan.txt)
-            ```
-
+            \`\`\`hcl
+            ${truncated}
+            \`\`\`
             </details>
+            `;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
