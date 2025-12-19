@@ -1,11 +1,11 @@
-module "github_oidc" {
-   source         = "../modules/github-oidc"
-   region         = var.region
-   role_name      = var.role_name
-   github_repos   = var.github_repository
-   policy_name    = var.terraform_oidc_policy
-   aws_account_id = var.aws_account_id
-}
+#module "github_oidc" {
+#   source         = "../modules/github-oidc"
+#   region         = var.region
+#   role_name      = var.role_name
+#   github_repos   = var.github_repository
+#   policy_name    = var.terraform_oidc_policy
+#   aws_account_id = var.aws_account_id
+#}
 
 
 module "vpc" {
