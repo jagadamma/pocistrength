@@ -1,30 +1,30 @@
-name: Terraform Plan - ap-south-1
+name: Terraform Apply
 
 on:
-  pull_request:
+  push:
     branches:
-      - dev-test
-  workflow_dispatch:
+      - main
+    paths:
+      - "dev/**"
 
 permissions:
   id-token: write
   contents: read
-  pull-requests: write
 
 jobs:
-  terraform_plan:
-    name: Terraform Plan - ap-south-1
+  terraform_apply:
+    name: Terraform Apply
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: jagadamma/pocistrength/dev/ap-south-1
+        working-directory: dev
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (OIDC)
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ASSUME }}
@@ -36,27 +36,7 @@ jobs:
           terraform_version: 1.5.0
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -input=false
 
-      - name: Terraform Plan
-        id: plan
-        run: |
-          terraform plan -input=false -no-color > plan.txt
-
-      - name: Comment Plan on PR
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: terraform-plan-ap-south-1
-          message: |
-            ✅ **Terraform Plan – ap-south-1**
-
-            <details>
-            <summary>📄 Show Plan</summary>
-
-            ```hcl
-            $(cat plan.txt)
-            ```
-
-            </details>
-
-            🧑‍💻 Triggered by @${{ github.actor }}
+      - name: Terraform Apply
+        run: terraform apply -input=false -auto-approve
