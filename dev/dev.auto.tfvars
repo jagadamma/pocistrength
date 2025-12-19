@@ -6,7 +6,9 @@ common_tags = {
   Terraformed = "True"
   Environment = "dev"
 }
-
+#
+#
+#
 #aws_account_id  = "200901485389"
 #github_repository     = ["Zampfi/pantheon", "Zampfi/infrastructure", "Zampfi/application-platform", "Zampfi/data_platform"]  
 #role_name             = "OIDCRole"
@@ -444,3 +446,4 @@ s3bucketslist = [
     public_access = true
   },
 ]
+
