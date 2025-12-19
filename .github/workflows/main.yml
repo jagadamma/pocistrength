@@ -1,0 +1,83 @@
+
+name: 'Terraform Plan'
+
+on:
+  push_request:
+    branches:
+      - dev.test
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform_plan_ap_south_1:
+    name: 'Terraform Plan - ap-south-1'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Fayaa-terrafrom-scripts/env/prod/ap-south-1
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ASSUME }}
+          aws-region: ap-south-1
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -input=false -no-color -out=tfplan > plan_stdout.txt 2> plan_stderr.txt || echo "TFPLAN_FAILED=true" >> $GITHUB_ENV
+          terraform show -no-color tfplan > plan_output.txt || true
+
+      - name: Prepare Comment
+        id: prepare_comment
+        run: |
+          REGION="ap-south-1"
+          echo "REGION=$REGION" >> $GITHUB_ENV
+          echo "ACTOR=${{ github.actor }}" >> $GITHUB_ENV
+          echo "WORKFLOW=${{ github.workflow }}" >> $GITHUB_ENV
+
+          PLAN_OUTPUT="$(cat plan_output.txt 2>/dev/null || echo '')"
+          PLAN_ERROR="$(cat plan_stderr.txt 2>/dev/null || echo '')"
+
+          if [[ -z "$PLAN_OUTPUT" || "$PLAN_ERROR" == *"Error"* ]]; then
+            echo "IS_FAILED=true" >> $GITHUB_ENV
+            CONTENT="$PLAN_ERROR"
+            TITLE="❌ Terraform Plan Failed - Region: $REGION"
+          else
+            echo "IS_FAILED=false" >> $GITHUB_ENV
+            CONTENT="$PLAN_OUTPUT"
+            TITLE="✅ Terraform Plan Succeeded - Region: $REGION"
+          fi
+
+          {
+            echo "COMMENT<<EOF"
+            echo "### $TITLE"
+            echo ""
+            echo "<details>"
+            echo "<summary>📄 Show Terraform Plan Output</summary>"
+            echo ""
+            echo '```hcl'
+            echo "$CONTENT"
+            echo '```'
+            echo "</details>"
+            echo ""
+            echo "🧑‍💻 Triggered by @$ACTOR | Workflow: \`$WORKFLOW\`"
+            echo "EOF"
+          } >> $GITHUB_ENV
